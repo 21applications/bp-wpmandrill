@@ -11,6 +11,6 @@ Requires the wpMandrill plugin to be installed and active.
 This is a working proof of concept rather than a robust solution.
 
 ##Mandrill Templates##
-If you are using Mandrill to provide an HTML template for all your site emails (not just the BuddyPress ones), you can continue to do so by overriding the BuddyPress single-bp-email.php template to just providethe body content.
+If you are using Mandrill to provide an HTML template for all your site emails (not just the BuddyPress ones), you can continue to do so by overriding the BuddyPress single-bp-email.php template to just provide the body content.
 
 Your override template goes in the /buddypress/assets/emails folder in your theme (see sample file).
