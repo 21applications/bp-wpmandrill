@@ -6,10 +6,6 @@
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
-
-$settings = bp_email_get_appearance_settings();
-
-
 ?>
 <p>{{{content}}}</p>
 <br/>
