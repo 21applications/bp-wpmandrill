@@ -104,7 +104,7 @@ class BP_WPMandrill implements BP_Email_Delivery {
 	
 	function set_content_type( $content_type ) {
 		
-		if ( $content_type == 'text/plain' && $send_as_html === true ) {
+		if ( $content_type == 'text/plain' && $this->send_as_html === true ) {
 			$content_type = 'text/html';
 		} 
 		
