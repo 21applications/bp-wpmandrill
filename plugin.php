@@ -49,78 +49,79 @@ function bp_wpmandrill_filters() {
 		}, 10, 4 );
 }
 
+if ( class_exists( 'BP_Email_Delivery' ) ) {
 
+	class BP_WPMandrill implements BP_Email_Delivery {
 
-class BP_WPMandrill implements BP_Email_Delivery {
-
-	 
-	var $send_as_html;
-	var $content = array();
-	
-	public function bp_email( BP_Email $email ) {
+		 
+		var $send_as_html;
+		var $content = array();
 		
-		if ( $email->get( 'content_type' ) === 'html' ) {
+		public function bp_email( BP_Email $email ) {
 			
-			$this->send_as_html = true;
+			if ( $email->get( 'content_type' ) === 'html' ) {
+				
+				$this->send_as_html = true;
+				
+			} else {
+				
+				$this->send_as_html = false;
+				
+			}
 			
-		} else {
+			add_filter( 'wp_mail_content_type', array( $this, 'set_content_type' ), 100 );
+			add_action( 'phpmailer_init',   array( $this, 'send_html' ) );
 			
-			$this->send_as_html = false;
+			
+			$recipients = $email->get_to();
+			
+			$to = array();
+			
+			foreach ( $recipients as $recipient ) {
+				$to[] = $recipient->get_address();
+			}
+			
+			$subject = $email->get_subject( 'replace-tokens' );
+			
+			$this->content['plain'] = normalize_whitespace( $email->get_content_plaintext( 'replace-tokens' ) );
+			
+			if ( $email->get( 'content_type' ) === 'html' ) {
+				
+				$this->content['html'] = $email->get_template( 'add-content' );
+				$message = $this->content['html'];
+				
+			} else {
+				
+				$message = $this->content['plain'];
+				
+			}
+			
+
+			return wp_mail( $to, $subject, $message );
+
+
+		}
+		
+		function set_content_type( $content_type ) {
+			
+			if ( $content_type == 'text/plain' && $this->send_as_html === true ) {
+				$content_type = 'text/html';
+			} 
+			
+			return $content_type;
 			
 		}
 		
-		add_filter( 'wp_mail_content_type', array( $this, 'set_content_type' ), 100 );
-		add_action( 'phpmailer_init',   array( $this, 'send_html' ) );
 		
-		
-		$recipients = $email->get_to();
-		
-		$to = array();
-		
-		foreach ( $recipients as $recipient ) {
-			$to[] = $recipient->get_address();
-		}
-		
-		$subject = $email->get_subject( 'replace-tokens' );
-		
-		$this->content['plain'] = normalize_whitespace( $email->get_content_plaintext( 'replace-tokens' ) );
-		
-		if ( $email->get( 'content_type' ) === 'html' ) {
-			
-			$this->content['html'] = $email->get_template( 'add-content' );
-			$message = $this->content['html'];
-			
-		} else {
-			
-			$message = $this->content['plain'];
-			
-		}
-		
+		function send_html( $phpmailer ) {
 
-		return wp_mail( $to, $subject, $message );
+			$phpmailer->AltBody = $this->content['plain'];
 
+			if ( $this->send_as_html ) {
+				$phpmailer->Body = $this->content['html'];
+			}
+
+		}
 
 	}
-	
-	function set_content_type( $content_type ) {
-		
-		if ( $content_type == 'text/plain' && $this->send_as_html === true ) {
-			$content_type = 'text/html';
-		} 
-		
-		return $content_type;
-		
-	}
-	
-	
-	function send_html( $phpmailer ) {
-
-		$phpmailer->AltBody = $this->content['plain'];
-
-		if ( $this->send_as_html ) {
-			$phpmailer->Body = $this->content['html'];
-		}
-
-	}
-
 }
